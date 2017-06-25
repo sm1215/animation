@@ -2,9 +2,9 @@ var creative = {
   svgns: "http://www.w3.org/2000/svg",
   width: 500,
   height: 500,
-  speed: 2,
+  speed: 1,
   radius: 40,
-  circleLimit: 50,
+  circleLimit: 10,
   circles: [],
   tracking: false,
 
@@ -56,16 +56,8 @@ var creative = {
         (cx > featureBounds().left && cy < featureBounds().bottom)
       ){
         this.tracking = true;
-        TweenMax.set(this.svg, {
-          borderRadius: '100%',
-          backgroundColor: 'rgba(250,0,0,0.1)'
-        });
       } else {
         this.tracking = false;
-        TweenMax.set(this.svg, {
-          borderRadius: '100%',
-          backgroundColor: 'transparent'
-        });
       }
     });
   },
@@ -117,14 +109,46 @@ var creative = {
       return this.creative.tracking ? user() : random();
     }
 
+    var getSpeed = function(){
+      // return this.creative.tracking ? _.random(0, 2) : this.creative.speed;
+      // return this.creative.tracking ? 1 : this.creative.speed;
+      return this.creative.tracking ? 0.2 : this.creative.speed;
+    }
+
+    var getEasing = function(){
+      return this.creative.tracking ? Circ.easeOut : Power0.easeNone;
+      // return this.creative.tracking ? Elastic.easeOut : Power0.easeNone;
+      // return this.creative.tracking ? Sine.easeOut : Power0.easeNone;
+      // return this.creative.tracking ? Power0.easeNone : Power0.easeNone;
+    }
+
     function move(circle){
-      TweenMax.to(circle, this.creative.speed, {
+      TweenMax.to(circle, getSpeed(), {
         fill: this.creative.generateColor(),
         attr: getMoveType(),
-        ease: Power0.easeNone,
+        ease: getEasing(),
         onComplete: move,
         onCompleteParams: [circle],
-        onCompleteScope: this
+        onCompleteScope: this,
+        onUpdate: function(circle, attr){
+          if(this.creative.tracking){
+            circle.duration(0.2);
+            circle.updateTo({
+              attr: {
+                cx: this.creative.cx,
+                cy: this.creative.cy //addGravity(this.creative.cy, attr.r)
+              }
+            }, true);
+          } else {
+            circle.duration(this.creative.speed);
+          }
+
+          function addGravity(cy, r){
+            return cy += r*3;
+          }
+        },
+        onUpdateParams: ['{self}', attr],
+        onUpdateScope: this
       });
     }
 
