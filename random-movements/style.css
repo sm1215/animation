@@ -1,0 +1,11 @@
+body, body *   { vertical-align: baseline; border: 0 none; outline: 0; padding: 0; margin: 0; font-family: Arial, sans-serif; font-size: 9pt; color: #333; }
+#main-container{ display:block; position: absolute; width: 2000px; height: 2000px; border: 1px solid #c2c2c2; background-color:#fff; }
+a           { display:block; border:none; text-decoration: none; height:100%; width:100%; z-index:11; }
+#exit       { position:absolute; cursor: pointer; width:100%; height:100%; z-index: 10; }
+#feature    { position:relative; top:0; left:0; height:100%; width:100%; overflow:hidden; }
+
+svg         { position:absolute; top:0; left:0; z-index:1; }
+circle      { position:absolute; top:0; left:0; z-index:2; }
+
+:focus{ outline:none; }
+::-moz-focus-inner { border:0; }
