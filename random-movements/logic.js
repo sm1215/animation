@@ -20,10 +20,12 @@ var creative = {
   },
 
   setBounds: function(){
+
     TweenMax.set(this.main, {
       width: this.width,
       height: this.height
     });
+
     TweenMax.set(this.svg, {
       attr: {
         width: this.width,
@@ -51,15 +53,17 @@ var creative = {
   },
 
   generateColor: function(){
-    var values = [];
-    _.times(3, () => {
-      values.push(_.random(0, 255, false));
-    });
-    values.push(_.random(0.2,1));
+    var values = [
+      _.random(0,255, false),
+      _.random(0,255, false),
+      _.random(0,255, false),
+      _.round(_.random(0.3,1), 2)
+    ];
     return `rgba(${values.join(',')})`;
   },
 
   animate: function(){
+
     function move(circle){
       TweenMax.to(circle, this.creative.speed, {
         fill: this.creative.generateColor(),
