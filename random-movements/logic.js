@@ -54,13 +54,24 @@ var creative = {
 
   generateColor: function(){
     var values = [
-      _.random(0,255, false),
-      _.random(0,255, false),
-      _.random(0,255, false),
+      _.times(3, () => (
+        _.random(0,255, false)
+      )),
       _.round(_.random(0.3,1), 2)
     ];
     return `rgba(${values.join(',')})`;
   },
+
+  // generateColor: () => (
+  //   `rgba(${
+  //     [
+  //       _.times(3, () => (
+  //         this.creative.randomColor())
+  //       ),
+  //       this.creative.randomOpacity()
+  //     ].join(',')
+  //   })`
+  // ),
 
   animate: function(){
 
