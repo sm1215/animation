@@ -1,17 +1,18 @@
 var creative = {
   svgns: "http://www.w3.org/2000/svg",
-  width: 500,
-  height: 500,
+  width: 700,
+  height: 700,
   speed: 1,
   radius: 40,
-  circleLimit: 10,
+  circleLimit: 100,
   circles: [],
   tracking: false,
+  listeners: ['move', 'click'],
 
   initialize: function() {
     this.setDom();
     this.setBounds();
-    this.setListeners();
+    this.setListeners(this.listeners);
     this.construct();
     this.animate();
   },
@@ -26,7 +27,7 @@ var creative = {
     TweenMax.set(this.main, {
       width: this.width,
       height: this.height,
-      top: this.height / 4,
+      top: 100,
       opacity: 1
     });
 
@@ -40,26 +41,48 @@ var creative = {
     });
   },
 
-  setListeners: function(){
-    window.addEventListener('mousemove', (e) => {
-      var cx = e.clientX;
-      var cy = e.clientY;
-      var featureBounds = function(){
-        return this.feature.getBoundingClientRect();
+  setListeners: function(options){
+    var types = {
+      move: function(thisObj){
+        window.addEventListener('mousemove', (e) => {
+          var cx = e.clientX;
+          var cy = e.clientY;
+          var featureBounds = function(){
+            return thisObj.feature.getBoundingClientRect();
+          }
+          thisObj.cx = cx - featureBounds().left;
+          thisObj.cy = cy - featureBounds().top;
+          if(
+            (cx > featureBounds().left && cy > featureBounds().top) &&
+            (cx < featureBounds().right && cy > featureBounds().top) &&
+            (cx < featureBounds().right && cy < featureBounds().bottom) &&
+            (cx > featureBounds().left && cy < featureBounds().bottom)
+          ){
+            thisObj.tracking = true;
+            TweenMax.to(thisObj.svg, 0.5, {
+              backgroundColor: 'rgba(255,255,150,0.3)'
+            });
+          } else {
+            thisObj.tracking = false;
+            TweenMax.to(thisObj.svg, 0.5, {
+              backgroundColor: 'transparent'
+            });
+          }
+        });
+      },
+
+      click: function(thisObj){
+        window.addEventListener('mousedown', (e) => {
+          thisObj.tracking = true;
+        });
+        window.addEventListener('mouseup', (e) => {
+          thisObj.tracking = false;
+        });
       }
-      this.cx = cx - featureBounds().left;
-      this.cy = cy - featureBounds().top;
-      if(
-        (cx > featureBounds().left && cy > featureBounds().top) &&
-        (cx < featureBounds().right && cy > featureBounds().top) &&
-        (cx < featureBounds().right && cy < featureBounds().bottom) &&
-        (cx > featureBounds().left && cy < featureBounds().bottom)
-      ){
-        this.tracking = true;
-      } else {
-        this.tracking = false;
-      }
-    });
+    }
+
+    var thisObj = this;
+    _.forEach(options, (option) => { types[option](thisObj) });
   },
 
   construct: function(){
@@ -87,72 +110,67 @@ var creative = {
     return `rgba(${values.join(',')})`;
   },
 
+  user: function(){
+    return attr = {
+      cx: this.cx,
+      cy: this.cy,
+      r: _.random(0, this.radius, false)
+    }
+  },
+
+  random: function(){
+    return attr = {
+      cx: _.random(this.radius, this.width - this.radius, false),
+      cy: _.random(this.radius, this.height - this.radius, false),
+      r: _.random(0, this.radius, false)
+    }
+  },
+
+  getMoveType: function(){
+    return this.tracking ? this.user() : this.random();
+  },
+
+  getSpeed: function(){
+    return this.tracking ? 0.2 : this.speed;
+  },
+
+  getEasing: function(){
+    return this.tracking ? Circ.easeOut : Power0.easeNone;
+    // return this.tracking ? Elastic.easeOut : Power0.easeNone;
+    // return this.tracking ? Sine.easeOut : Power0.easeNone;
+    // return this.tracking ? Power0.easeNone : Power0.easeNone;
+  },
+
   animate: function(){
 
-    var user = function(){
-      return attr = {
-        cx: this.creative.cx,
-        cy: this.creative.cy,
-        r: _.random(0, this.creative.radius, false)
-      }
-    }
-
-    var random = function(){
-      return attr = {
-        cx: _.random(this.creative.radius, this.creative.width - this.creative.radius, false),
-        cy: _.random(this.creative.radius, this.creative.height - this.creative.radius, false),
-        r: _.random(0, this.creative.radius, false)
-      }
-    }
-
-    var getMoveType = function(){
-      return this.creative.tracking ? user() : random();
-    }
-
-    var getSpeed = function(){
-      // return this.creative.tracking ? _.random(0, 2) : this.creative.speed;
-      // return this.creative.tracking ? 1 : this.creative.speed;
-      return this.creative.tracking ? 0.2 : this.creative.speed;
-    }
-
-    var getEasing = function(){
-      return this.creative.tracking ? Circ.easeOut : Power0.easeNone;
-      // return this.creative.tracking ? Elastic.easeOut : Power0.easeNone;
-      // return this.creative.tracking ? Sine.easeOut : Power0.easeNone;
-      // return this.creative.tracking ? Power0.easeNone : Power0.easeNone;
-    }
-
     function move(circle){
-      TweenMax.to(circle, getSpeed(), {
+      TweenMax.to(circle, this.creative.getSpeed(), {
         fill: this.creative.generateColor(),
-        attr: getMoveType(),
-        ease: getEasing(),
+        attr: this.creative.getMoveType(),
+        ease: this.creative.getEasing(),
         onComplete: move,
         onCompleteParams: [circle],
         onCompleteScope: this,
-        onUpdate: function(circle, attr){
+        onUpdate: function(circle){
+          circle.duration(this.creative.getSpeed());
           if(this.creative.tracking){
-            circle.duration(0.2);
+            this.creative.wasTracking = true;
             circle.updateTo({
-              attr: {
-                cx: this.creative.cx,
-                cy: this.creative.cy //addGravity(this.creative.cy, attr.r)
-              }
+              attr: this.creative.getMoveType(),
             }, true);
-          } else {
-            circle.duration(this.creative.speed);
-          }
-
-          function addGravity(cy, r){
-            return cy += r*3;
+          } else if(this.creative.wasTracking){
+            this.creative.wasTracking = false;
+            circle.updateTo({
+              attr: this.creative.getMoveType()
+            });
           }
         },
-        onUpdateParams: ['{self}', attr],
+        onUpdateParams: ['{self}'],
         onUpdateScope: this
       });
     }
 
-    _.forEach(this.circles, (circle) => {
+    _.forEach(this.circles, function(circle){
       move(circle);
     });
   }
