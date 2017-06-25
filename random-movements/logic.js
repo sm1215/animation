@@ -32,7 +32,7 @@ var creative = {
       attr: {
         width: this.width,
         height: this.height,
-        viewBox: '0 0 '+ this.width +' '+ this.height
+        viewBox: `0 0 ${this.width} ${this.height}`
       },
       opacity: 1
     });
@@ -62,17 +62,6 @@ var creative = {
     ];
     return `rgba(${values.join(',')})`;
   },
-
-  // generateColor: () => (
-  //   `rgba(${
-  //     [
-  //       _.times(3, () => (
-  //         this.creative.randomColor())
-  //       ),
-  //       this.creative.randomOpacity()
-  //     ].join(',')
-  //   })`
-  // ),
 
   animate: function(){
 
