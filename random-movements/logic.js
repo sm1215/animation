@@ -3,8 +3,8 @@ var creative = {
   width: 500,
   height: 500,
   speed: 2,
-  radius: 20,
-  circleLimit: 10,
+  radius: 40,
+  circleLimit: 50,
   circles: [],
 
   initialize: function() {
@@ -21,17 +21,20 @@ var creative = {
 
   setBounds: function(){
 
-    TweenMax.set(this.main, {
+    TweenMax.to(this.main, this.speed, {
       width: this.width,
-      height: this.height
+      height: this.height,
+      top: this.height / 4,
+      opacity: 1
     });
 
-    TweenMax.set(this.svg, {
+    TweenMax.to(this.svg, this.speed, {
       attr: {
         width: this.width,
         height: this.height,
         viewBox: '0 0 '+ this.width +' '+ this.height
-      }
+      },
+      opacity: 1
     });
   },
 
@@ -41,8 +44,8 @@ var creative = {
 
       TweenMax.set(el, {
         attr: {
-          cx: 0,
-          cy: 0,
+          cx: _.random(0, this.width - this.radius, false),
+          cy: _.random(0, this.height - this.radius, false),
           r: this.radius          
         }
       });
@@ -54,9 +57,7 @@ var creative = {
 
   generateColor: function(){
     var values = [
-      _.times(3, () => (
-        _.random(0,255, false)
-      )),
+      _.times(3, () => (_.random(0,255, false))),
       _.round(_.random(0.3,1), 2)
     ];
     return `rgba(${values.join(',')})`;
@@ -79,8 +80,9 @@ var creative = {
       TweenMax.to(circle, this.creative.speed, {
         fill: this.creative.generateColor(),
         attr: {
-          cx: _.random(0, this.creative.width, false),
-          cy: _.random(0, this.creative.height, false)
+          cx: _.random(this.creative.radius, this.creative.width - this.creative.radius, false),
+          cy: _.random(this.creative.radius, this.creative.height - this.creative.radius, false),
+          r: _.random(0, this.creative.radius, false),
         },
         ease: Power0.easeNone,
         onComplete: move,
