@@ -4,10 +4,13 @@ var creative = {
   height: 700,
   speed: 1,
   radius: 40,
-  circleLimit: 100,
+  circleLimit: 50,
   circles: [],
+  colorLimit: 50,
+  colors: [],
   tracking: false,
-  listeners: ['move', 'click'],
+  // listeners: ['move', 'click'],
+  listeners: ['click'],
 
   initialize: function() {
     this.setDom();
@@ -73,6 +76,11 @@ var creative = {
 
       click: function(thisObj){
         window.addEventListener('mousedown', (e) => {
+          var featureBounds = function(){
+            return thisObj.feature.getBoundingClientRect();
+          }
+          thisObj.cx = e.clientX - featureBounds().left;
+          thisObj.cy = e.clientY - featureBounds().top;
           thisObj.tracking = true;
         });
         window.addEventListener('mouseup', (e) => {
@@ -86,8 +94,69 @@ var creative = {
   },
 
   construct: function(){
+   
+    var defs = createElement('defs');
+    
+    _.times(this.colorLimit, () => {
+      var gradient = createElement('radialGradient');
+      var stopZero = createElement('stop');
+      var stopOne = createElement('stop');
+      var stopTwo = createElement('stop');
+      var stopThree = createElement('stop');
+
+      TweenMax.set(gradient, { attr: { id: `gradient-${this.colors.length}` } });
+      TweenMax.set(stopZero, { 
+        attr: { 
+          offset: '10%',
+          'stop-color': this.generateColor({ 
+              colorRange: { min:200, max:255 }, 
+              opacityRange: { min: 0.1, max: 0.2 }
+            })
+        }
+      });
+      TweenMax.set(stopOne, { 
+        attr: { 
+          offset: '30%',
+          'stop-color': this.generateColor({ 
+              colorRange: { min:150, max:255 }, 
+              opacityRange: { min: 0.2, max: 0.4 } 
+            })
+        }
+      });
+      TweenMax.set(stopTwo, { 
+        attr: { 
+          offset: '60%',
+          'stop-color': this.generateColor({ 
+              colorRange: { min:0, max:255 }, 
+              opacityRange: { min: 0.5, max: 0.6 } 
+            })
+        }
+      });
+      TweenMax.set(stopThree, { 
+        attr: { 
+          offset: '98%',
+          'stop-color': this.generateColor({ 
+              colorRange: { min:0, max:70 }, 
+              opacityRange: { min: 0.8, max: 0.9 } 
+            })
+        }
+      });
+
+      gradient.appendChild(stopZero);
+      gradient.appendChild(stopOne);
+      gradient.appendChild(stopTwo);
+      gradient.appendChild(stopThree);
+      this.colors.push(gradient);
+    });
+
+    _.forEach(this.colors, (gradient) => {
+      defs.appendChild(gradient);
+    });
+
+    this.svg.appendChild(defs);
+
     _.times(this.circleLimit, () => {
-      var el = document.createElementNS(this.svgns, 'circle');
+      var el = createElement('circle');
 
       TweenMax.set(el, {
         attr: {
@@ -100,14 +169,22 @@ var creative = {
       this.circles.push(el);
       this.svg.appendChild(el);
     });
+
+    function createElement(name){
+      return document.createElementNS(this.creative.svgns, name);
+    }
   },
 
-  generateColor: function(){
+  generateColor: function({colorRange, opacityRange}){
     var values = [
-      _.times(3, () => (_.random(0,255, false))),
-      _.round(_.random(0.3,1), 2)
+      _.times(3, () => (_.random(colorRange.min, colorRange.max, false))),
+      _.round(_.random(opacityRange.min, opacityRange.max), 2)
     ];
     return `rgba(${values.join(',')})`;
+  },
+
+  assignGradient: function(){
+    return `url(#gradient-${_.random(0, this.colors.length - 1, false)})`;
   },
 
   user: function(){
@@ -143,9 +220,18 @@ var creative = {
 
   animate: function(){
 
+    _.forEach(this.circles, (circle) => {
+      TweenMax.set(circle, {
+        attr: {
+          fill: this.assignGradient()
+        }
+      });
+    });
+
     function move(circle){
       TweenMax.to(circle, this.creative.getSpeed(), {
-        fill: this.creative.generateColor(),
+        // fill: this.creative.generateColor(),
+        // fill: this.creative.assignGradient(),
         attr: this.creative.getMoveType(),
         ease: this.creative.getEasing(),
         onComplete: move,
