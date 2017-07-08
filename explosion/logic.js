@@ -12,7 +12,6 @@ var creative = {
     { min: 10, max: 30 } //yellow
   ],
   circleLimit: 50,
-  
   speed: 1.25,
   gravity: 1.8,
   gradientDefinitions: [
@@ -70,11 +69,7 @@ var creative = {
       },
 
       offset: function(){
-        let mainRect = this.main.getBoundingClientRect();
-        this.offset.top = mainRect.top;
-        this.offset.right = mainRect.right;
-        this.offset.bottom = mainRect.bottom;
-        this.offset.left = mainRect.left;
+        this.offset = _.pick(this.main.getBoundingClientRect(), ['top', 'right', 'bottom', 'left']);
       },
 
       coords: function(){
@@ -97,7 +92,7 @@ var creative = {
           this.cy = e.clientY - this.offset.top;
         });
       }
-    }
+    };
 
     _.forEach(options, (option) => { types[option].call(this); });
   },
@@ -148,7 +143,7 @@ var creative = {
           this.svg.appendChild(el);
         });
       }
-    }
+    };
 
     _.forEach(options, (option) => { types[option].call(this); });
   },
