@@ -45,12 +45,12 @@ var creative = {
 
   setup: function(options){
     let types = {
-      dom: function(){
+      dom: () => {
         this.main = document.querySelector('#main-container');
         this.svg = document.querySelector('svg');
       },
       
-      bounds: function(){
+      bounds: () => {
         TweenMax.set(this.main, {
           width: this.bounds.width,
           height: this.bounds.height,
@@ -68,11 +68,11 @@ var creative = {
         });
       },
 
-      offset: function(){
+      offset: () => {
         this.offset = _.pick(this.main.getBoundingClientRect(), ['top', 'right', 'bottom', 'left']);
       },
 
-      coords: function(){
+      coords: () => {
         this.cx = this.bounds.width / 2;
         this.cy = this.bounds.height / 2;
       }
@@ -83,7 +83,7 @@ var creative = {
 
   setListeners: function(options){
     let types = {
-      move: function(){
+      move: () => {
         window.addEventListener('mousedown', (e) => {
           this.animate();
         });
@@ -99,7 +99,7 @@ var creative = {
 
   construct: function(options){
     let types = {
-      gradients: function(){
+      gradients: () => {
         let defs = this.createElement('defs');
 
         _.forEach(this.gradientDefinitions, (gradDef, i) => {
@@ -125,7 +125,7 @@ var creative = {
         this.svg.insertBefore(defs, this.svg.firstChild);
       },
 
-      circles: function(){
+      circles: () => {
         _.times(this.circleLimit, (i) => {
           let el = this.createElement('circle');
           let radius = this.assignRadius(i);
