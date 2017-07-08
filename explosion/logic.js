@@ -12,13 +12,12 @@ var creative = {
     { min: 10, max: 30 } //yellow
   ],
   circleLimit: 50,
-  circles: [],
-  colors: [],
+  
   speed: 1.25,
-  gravity: 2,
+  gravity: 1.8,
   gradientDefinitions: [
     //gradients are layered,
-    //the lower a gradient's index here, the higher it's z-index will be
+    //the lower a gradient's index here, the lower it's z-index will be
     [
       //red
       { offset: '0%', color: 'rgba(188,0,0,1)' },
@@ -35,56 +34,60 @@ var creative = {
       { offset: '100%', color: 'rgba(251,255,153,1)' }
     ]
   ],
-  listeners: ['move'],
+  circles: [],
+  colors: [],
 
   initialize: function() {
-    this.setDom();
-    this.setBounds();
-    this.setOffset();
-    this.setCoords();
-    this.setListeners(this.listeners);
+    this.setup(['dom', 'bounds', 'offset', 'coords']);
+    this.setListeners(['move']);
     this.construct(['gradients', 'circles']);
     this.animate();
   },
 
-  setDom: function() {
-    this.main = document.querySelector('#main-container');
-    this.feature = document.querySelector('#feature');
-    this.svg = document.querySelector('svg');
-  },
-
-  setBounds: function(){
-    TweenMax.set(this.main, {
-      width: this.bounds.width,
-      height: this.bounds.height,
-      top: 100,
-      opacity: 1
-    });
-
-    TweenMax.set(this.svg, {
-      attr: {
-        width: this.bounds.width,
-        height: this.bounds.height,
-        viewBox: `0 0 ${this.bounds.width} ${this.bounds.height}`
+  setup: function(options){
+    let types = {
+      dom: function(){
+        this.main = document.querySelector('#main-container');
+        this.svg = document.querySelector('svg');
       },
-      opacity: 1
-    });
-  },
+      
+      bounds: function(){
+        TweenMax.set(this.main, {
+          width: this.bounds.width,
+          height: this.bounds.height,
+          top: 100,
+          opacity: 1
+        });
 
-  setOffset: function(){
-    this.offset.top = this.feature.getBoundingClientRect().top;
-    this.offset.right = this.feature.getBoundingClientRect().right;
-    this.offset.bottom = this.feature.getBoundingClientRect().bottom;
-    this.offset.left = this.feature.getBoundingClientRect().left;
-  },
+        TweenMax.set(this.svg, {
+          attr: {
+            width: this.bounds.width,
+            height: this.bounds.height,
+            viewBox: `0 0 ${this.bounds.width} ${this.bounds.height}`
+          },
+          opacity: 1
+        });
+      },
 
-  setCoords: function(){
-    this.cx = this.bounds.width / 2;
-    this.cy = this.bounds.height / 2;
+      offset: function(){
+        let mainRect = this.main.getBoundingClientRect();
+        this.offset.top = mainRect.top;
+        this.offset.right = mainRect.right;
+        this.offset.bottom = mainRect.bottom;
+        this.offset.left = mainRect.left;
+      },
+
+      coords: function(){
+        this.cx = this.bounds.width / 2;
+        this.cy = this.bounds.height / 2;
+      }
+    };
+
+    _.forEach(options, (option) => { types[option].call(this); });
   },
 
   setListeners: function(options){
-    var types = {
+    let types = {
       move: function(){
         window.addEventListener('mousedown', (e) => {
           this.animate();
@@ -96,10 +99,7 @@ var creative = {
       }
     }
 
-    _.forEach(options, function(option){
-      try{ types[option].call(this.creative); }
-      catch(e){ console.log(e); }
-    });
+    _.forEach(options, (option) => { types[option].call(this); });
   },
 
   construct: function(options){
@@ -150,10 +150,7 @@ var creative = {
       }
     }
 
-    _.forEach(options, function(option){
-      try{ types[option].call(this.creative); }
-      catch(e){ console.log(e); }
-    });
+    _.forEach(options, (option) => { types[option].call(this); });
   },
 
   createElement: function(name){
@@ -168,10 +165,6 @@ var creative = {
   assignGradient: function(currentCircle){
     let colorIndex = _.floor((currentCircle / this.circleLimit) * this.colors.length);
     return `url(#gradient-${colorIndex})`;
-  },
-
-  logTime: function(label){
-    console.log(label, window.performance.now());
   },
 
   resetCircles: function(){
@@ -195,7 +188,7 @@ var creative = {
 
     function move(circle){
       let angle = Math.random() * Math.PI * 2;
-      let degree = angle * -90 / Math.PI * 2;
+      let degree = angle * -90 / Math.PI * 3;
       let velocity = (_.random(0.15, 1) * 500) * this.speed;
       let gravity = 700 * this.gravity;
       let radius = circle.getAttribute('r');
@@ -222,9 +215,6 @@ var creative = {
       });
     }
 
-    _.forEach(this.circles, function(circle){
-      try{ move.call(this.creative, circle); }
-      catch(e){ console.log(e); }
-    });
+    _.forEach(this.circles, (circle) => { move.call(this, circle); });
   }
 }
