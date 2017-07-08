@@ -1,0 +1,13 @@
+body, body *   { vertical-align: baseline; border: 0 none; outline: 0; padding: 0; margin: 0; font-family: Arial, sans-serif; font-size: 9pt; color: #333; }
+#main-container{ display:block; position: relative; width: 0px; height: 0px; margin:0 auto; }
+a           { display:block; border:none; text-decoration: none; height:100%; width:100%; z-index:11; }
+#exit       { position:absolute; cursor: pointer; width:100%; height:100%; z-index: 10; }
+#feature    { position:relative; top:0; left:0; height:100%; width:100%; /*overflow:hidden;*/ }
+
+svg         { opacity:0; position:absolute; top:0; left:0; z-index:1; /*border-radius:100%;*/  overflow:visible; }
+circle      { position:absolute; top:0; left:0; z-index:2; }
+
+.message 	{ margin:100px auto 0 auto; text-align: center; user-select:none; }
+
+:focus{ outline:none; }
+::-moz-focus-inner { border:0; }
