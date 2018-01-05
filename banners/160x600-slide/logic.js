@@ -138,33 +138,44 @@ var creative = {
     // }
     obj.length ? el = obj : el = [obj];
 
-    // console.log("el", el);
+    console.log("el", el);
 
     for(var i = 0; i < el.length; i++){
       var elI = getEl(el[i]);
+
+      console.log("elI", elI);
+
       // Check if we're working with a collection
       if(elI.length > 1){
         for (var j = 0; j < elI.length; j++) {
           var elJ = getEl(elI[j]);
-          elJ = getKeys.call(this, elI[j], this.defaultOffset); //getKeys is being called too many times on singular objects
+          elJ = getKeys.call(this, elI[j], this.defaultOffset);
           setPositions.call(this, elJ);
         }
       } else{
+        //need to copy properties over from the "obj" argument that was originally passed to this function
+        //before checked them against the defaultOffset object
         elI = getKeys.call(this, elI, this.defaultOffset);
         setPositions.call(this, elI);
       }
     }
 
+
+
     function getEl(obj){
-      return obj.el ? obj.el : obj;
+      return obj;
+      // return obj.el ? obj.el : obj;
+      //this is incorrect, because it is returning the dom reference of an element instead of the user defined object that holds
+      //the values needed to override defaultOffset
     }
 
     // Checks 'a' object against 'b' object. Anything 'a' object is missing is filled in by 'b' object
     function getKeys(a, b){
       var bKeys = Object.keys(b);
+      console.log("bKeys", bKeys);
       for(var i = 0; i < bKeys.length; i++){
         var bk = bKeys[i];
-        // console.log("obj", a, 'key', bk, 'check', a.hasOwnProperty(bk)); //this check is failing on every obj on test 5
+        console.log("obj", a, 'key', bk, 'check', a.hasOwnProperty(bk)); //this check is failing on every obj on test 5
         if(!a.hasOwnProperty(bk)){
           a[bk] = b[bk];
         }
