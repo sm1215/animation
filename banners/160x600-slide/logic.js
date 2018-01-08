@@ -1,4 +1,6 @@
 /*
+* Version : 1.0.0
+* Author: Sam Miller
 * ==================================================================================================
 *   Creative Properties
 * --------------------------------------------------------------------------------------------------
@@ -6,15 +8,16 @@
 *     Set during creative initialization. This is part of a timer used when measuring banner runtime upon completion.
 *
 *   container:
-*     The main container of the banner. This is used when setting up bounds and needs to be defined.
+*     The main container of the banner. This is used when setting up bounds and needs to be defined with selector notation (include a class dot or id hash).
 *
 *   classes:
 *     An array of classnames of elements the index.html contains that you want to work with.
 *     This is used in the setupDom function and will assign all classes in this array to the creative object (this).
 *     These need to use camelCasing in order to reference them properly on the 'this' object.
+*     Example: If you add 'logo' here, you can access the dom reference of logo using 'this.logo'
 *
 *   bounds:
-*     This is set automatically during initialization and is used when offsetting elements.
+*     This is automatically set during initialization and is used when offsetting elements.
 *
 *   offset:
 *     A list of parameters used in the offsetElements function. These help to control how elements are positioned initially offscreen and where they will move to.
@@ -33,6 +36,20 @@
 *
 *   devMode:
 *     Boolean value. If true, the banner runtime can be console logged upon completion using the logRuntime function. If false, nothing is logged.
+*
+*   Note: When all the setup is done you should have the following to work with while animating...
+*   Example: this.logo
+*     - Set these values in the beginning
+*       this.logo.fromDir [top, right, bottom, left]
+*       this.logo.toDir [top, right, bottom, left]
+*       this.logo.modifier (pixel value)
+*
+*     - Animate using these values
+*       this.logo.fromAnimate [top, left]
+*       this.logo.toAnimate [top, left]
+*       this.logo.startPosition (int value)
+*       this.logo.restPosition (int value)
+*       this.logo.endPosition (int value)
 * ==================================================================================================
 */
 var creative = {
@@ -41,7 +58,7 @@ var creative = {
   classes: ['feature', 'checkmark', 'checkline', 'text', 'logo', 'cta'],
   bounds: {},
   defaultOffset: {
-    fromDir: 'bottom',
+    fromDir: 'right',
     toDir: 'right',
     modifier: 0
   },
@@ -65,17 +82,37 @@ var creative = {
     // Array of mixed collection / single Elements
     // this.offsetElements([this.text, this.logo, this.cta]);
 
+    // Example Usage 4:
+    // Array of mixed data - collection + objects with custom offsets that override the offset set at the creative level
+    // this.offsetElements([
+    //   this.text,
+    //   {
+    //     el: this.logo,
+    //     fromDir: 'left'
+    //   },
+    //   {
+    //     el: this.cta,
+    //     fromDir: 'right'
+    //   }
+    // ]);
+
     // Example Usage 5:
     // Array of mixed data - collection + objects with custom offsets that override the offset set at the creative level
+    // Bonus, override one piece of a collection that inherits the defaultOffsets
     this.offsetElements([
       this.text,
       {
+        el: this.text[0],
+        fromDir: 'top',
+        toDir: 'left'
+      },
+      {
         el: this.logo,
-        fromDir: 'top' //error: this is being assigned 'bottom' instead of 'top'
+        fromDir: 'left'
       },
       {
         el: this.cta,
-        fromDir: 'bottom'
+        fromDir: 'right'
       }
     ]);
 
@@ -129,60 +166,52 @@ var creative = {
   * ==================================================================================================
   */
   offsetElements: function(obj){
-    var el;
-    //replaced with the ternary below, need to test this in all use cases before removing commented code
-    // if(obj.length){
-    //   el = obj;
-    // } else {
-    //   el = [obj];
-    // }
-    obj.length ? el = obj : el = [obj];
-
-    console.log("el", el);
-
-    for(var i = 0; i < el.length; i++){
-      var elI = getEl(el[i]);
-
-      console.log("elI", elI);
-
-      // Check if we're working with a collection
-      if(elI.length > 1){
-        for (var j = 0; j < elI.length; j++) {
-          var elJ = getEl(elI[j]);
-          elJ = getKeys.call(this, elI[j], this.defaultOffset);
-          setPositions.call(this, elJ);
-        }
-      } else{
-        //need to copy properties over from the "obj" argument that was originally passed to this function
-        //before checked them against the defaultOffset object
-        elI = getKeys.call(this, elI, this.defaultOffset);
-        setPositions.call(this, elI);
+    if(!obj.length){
+      obj = [obj];
+    }
+    for (var i = 0; i < obj.length; i++) {
+      var oI = obj[i];
+      if(!oI.length){
+        oI = [oI];
+      }
+      for (var j = 0; j < oI.length; j++) {
+        setupProperties.call(this, oI[j]);
+        setPositions(oI[j].el ? oI[j].el : oI[j]);
       }
     }
 
+   /*
+    * ==================================================================================================
+    * Copy any user defined properties (fromDir, toDir, modifier) to dom element.
+    * If user hasn't specified any for this el, fallback to defaultOffset
+    * ==================================================================================================
+    */
+    function setupProperties(obj){
+      var defaultKeys = Object.keys(this.defaultOffset);
 
+      for (var i = 0; i < defaultKeys.length; i++) {
+        var k = defaultKeys[i];
 
-    function getEl(obj){
-      return obj;
-      // return obj.el ? obj.el : obj;
-      //this is incorrect, because it is returning the dom reference of an element instead of the user defined object that holds
-      //the values needed to override defaultOffset
-    }
-
-    // Checks 'a' object against 'b' object. Anything 'a' object is missing is filled in by 'b' object
-    function getKeys(a, b){
-      var bKeys = Object.keys(b);
-      console.log("bKeys", bKeys);
-      for(var i = 0; i < bKeys.length; i++){
-        var bk = bKeys[i];
-        console.log("obj", a, 'key', bk, 'check', a.hasOwnProperty(bk)); //this check is failing on every obj on test 5
-        if(!a.hasOwnProperty(bk)){
-          a[bk] = b[bk];
+        if(obj[k]){
+          //user defined option overrides defaultOffset
+          obj.el[k] = obj[k];
+        } else if(obj.el){
+          //user object exists, but no override specified, fallback to default
+          obj.el[k] = this.defaultOffset[k];
+        } else {
+          //no user object at all, working directly with dom ref
+         obj[k] = this.defaultOffset[k];
         }
       }
-      return a;
     }
 
+   /*
+    * ==================================================================================================
+    * Setup pre-defined stop points for animating: startPosition, restPosition, endPosition.
+    * Hard-set elements to starting position (no animation).
+    * Usually the startPosition is somewhere outside of overflow and isn't visible.
+    * ==================================================================================================
+    */
     function setPositions(el){
       el.fromMeasure = getMeasure(el.fromDir); //start
       el.toMeasure = getMeasure(el.toDir); //end
@@ -197,6 +226,7 @@ var creative = {
       if(el.toDir == 'left' || el.toDir == 'top'){
         el.endPosition = -Math.abs(el.endPosition);
       }
+      el.style = '';
       el.style[el.fromAnimate] = el.startPosition + 'px';
     }
 
